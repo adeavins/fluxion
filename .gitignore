@@ -1,0 +1,10 @@
+*.pyc
+.coverage
+temp/*
+fluxion.egg-info/*
+htmlcov/*
+doc/build
+build
+dist
+*.sublime-workspace
+*.cache
