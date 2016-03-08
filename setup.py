@@ -22,7 +22,7 @@ class PyTest(TestCommand):
 
 setup(
     name="fluxion",
-    version="0.0.1",
+    version="0.0.2+dev",
     description="PDE/SDE integrator",
     long_description=open("README.rst").read(),
     url="https://github.com/fluxion/fluxion-py",
