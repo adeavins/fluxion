@@ -12,4 +12,4 @@ Under construction.
 0.0.1 (08 Mar 2016)
 ===================
 
-* An working example of a 0D ODE was added.
+* A working example of a 0D ODE was added.
