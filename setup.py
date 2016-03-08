@@ -25,7 +25,7 @@ setup(
     version="0.0.2+dev",
     description="PDE/SDE integrator",
     long_description=open("README.rst").read(),
-    url="https://github.com/fluxion/fluxion-py",
+    url="https://github.com/fluxion/fluxion",
     author="Bogdan Opanchuk",
     author_email="bogdan@opanchuk.net",
     packages=find_packages(),
