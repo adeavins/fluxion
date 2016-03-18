@@ -172,27 +172,36 @@ def join(dicts):
 
 
 @multimethod
-def used_variables(expr: ExprNode):
-    return join([used_variables(arg) for arg in expr.args])
+def _used_variables(expr: ExprNode):
+    return join([_used_variables(arg) for arg in expr.args])
 
 @multimethod
-def used_variables(expr: ExprLeaf):
+def _used_variables(expr: Field):
+    return join([_used_variables(dim) for dim in expr.dimensions])
+
+@multimethod
+def _used_variables(expr: ExprLeaf):
     return {}
 
 @multimethod
-def used_variables(expr: TransverseDimension):
+def _used_variables(expr: TransverseDimension):
     return dict(transverse_dimensions=set([expr]))
 
 @multimethod
-def used_variables(expr: PropagationDimension):
+def _used_variables(expr: PropagationDimension):
     return dict(propagation_dimensions=set([expr]))
 
 @multimethod
-def used_variables(expr: Noise):
+def _used_variables(expr: Noise):
     return join(
         [dict(noises=set([expr]))]
-        + [used_variables(dim) for dim in expr.dimensions])
+        + [_used_variables(dim) for dim in expr.dimensions])
 
+
+def used_variables(expr):
+    return join([
+        _used_variables(expr),
+        dict(noises=set(), propagation_dimensions=set(), transverse_dimensions=set())])
 
 
 def as_array(obj, dimensions=None, kind=None):
