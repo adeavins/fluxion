@@ -1,3 +1,5 @@
+import numpy
+
 from .assumptions import validate_assumptions
 
 """
@@ -180,10 +182,42 @@ class Function(ExprLeaf):
     def propagate_assumptions(self, *args):
         pass
 
+    def evaluate(self, *args):
+        raise NotImplementedError
+
     def __call__(self, *args):
         assert len(args) == self.__nargs
         # and, probably, other checks
         return Apply(self, *args)
+
+
+class Apply(ExprNode):
+    pass
+
+
+class Abs(Function):
+    def __init__(self):
+        super().__init__('abs', 1)
+
+    def evaluate(self, x):
+        return numpy.abs(x)
+
+
+def abs(x):
+    return Apply(Abs(), x)
+
+
+class Cosh(Function):
+
+    def __init__(self):
+        super().__init__('abs', 1)
+
+    def evaluate(self, x):
+        return numpy.cosh(x)
+
+
+def cosh(x):
+    return Apply(Cosh(), x)
 
 
 class Scalar(TypedExprLeaf):
