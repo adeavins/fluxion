@@ -18,17 +18,20 @@ class PropagationDimension(Symbol):
 
 class TransverseDimension(Symbol):
 
-    def __init__(self, name, grid):
+    def __init__(self, name, grid, uniform=False):
         super(TransverseDimension, self).__init__(name, real=True)
+        # TODO: we need to actually check for uniformity instead of relying on the user
         self.name = name
         self.grid = numpy.array(grid)
+        self.uniform = uniform
 
     @classmethod
-    def uniform(cls, name):
-        return TransverseDimension(name, numpy.linspace(start, stop, points, endpoint=False))
+    def uniform(cls, name, start, stop, points, endpoint=False):
+        return TransverseDimension(
+            name, numpy.linspace(start, stop, points, endpoint=endpoint), uniform=True)
 
     def _canonical_args(self):
-        return (self.name, self.grid), None
+        return (self.name,), None
 
 
 class TransverseIntegerDimension(Symbol):
