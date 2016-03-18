@@ -22,11 +22,23 @@ class Expr:
     def __radd__(self, other):
         return Add(as_expr(other), self)
 
+    def __sub__(self, other):
+        return Sub(self, as_expr(other))
+
+    def __rsub__(self, other):
+        return Sub(as_expr(other), self)
+
     def __mul__(self, other):
         return Mul(self, as_expr(other))
 
     def __rmul__(self, other):
         return Mul(as_expr(other), self)
+
+    def __truediv__(self, other):
+        return Div(self, as_expr(other))
+
+    def __rtruediv__(self, other):
+        return Div(as_expr(other), self)
 
     def __pow__(self, other):
         return Pow(self, as_expr(other))
@@ -52,7 +64,15 @@ class Add(ExprNode):
     pass
 
 
+class Sub(ExprNode):
+    pass
+
+
 class Mul(ExprNode):
+    pass
+
+
+class Div(ExprNode):
     pass
 
 
