@@ -33,7 +33,7 @@ def check_equation(eq):
     # check rhs
 
     vs = used_variables(rhs)
-    assert vs['propagation_dimensions'] == set([pdimension])
+    assert vs['propagation_dimensions'].issubset(set([pdimension]))
     assert (
         'transverse_dimensions' not in vs
         or vs['transverse_dimensions'].issubset(set(field.dimensions)))
