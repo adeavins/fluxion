@@ -205,5 +205,23 @@ class Integer(Scalar):
         return (self.value,), None
 
 
+class Real(Scalar):
+
+    def __init__(self, value):
+        super(Real, self).__init__(value, real=True)
+
+    def _canonical_args(self):
+        return (self.value,), None
+
+
+class Complex(Scalar):
+
+    def __init__(self, value):
+        super(Complex, self).__init__(value, complex=True)
+
+    def _canonical_args(self):
+        return (self.value,), None
+
+
 ZERO = Integer(0)
 
