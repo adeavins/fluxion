@@ -253,8 +253,18 @@ def _as_array(obj: Mul, dimensions):
     return _as_array(obj.args[0], dimensions) * _as_array(obj.args[1], dimensions)
 
 @multimethod
+def _as_array(obj: Div, dimensions):
+    return _as_array(obj.args[0], dimensions) / _as_array(obj.args[1], dimensions)
+
+@multimethod
 def _as_array(obj: Pow, dimensions):
     return _as_array(obj.args[0], dimensions) ** _as_array(obj.args[1], dimensions)
+
+@multimethod
+def _as_array(obj: Apply, dimensions):
+    func = obj.args[0]
+    assert isinstance(func, Function)
+    return func.evaluate(*[_as_array(arg, dimensions) for arg in obj.args[1:]])
 
 @multimethod
 def _as_array(obj: Field, dimensions):
