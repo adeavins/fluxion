@@ -8,7 +8,7 @@ t = PropagationDimension('t')
 x = TransverseDimension.uniform('x', 0, 20, 100)
 psi = UnknownField('psi', x, t, kind=COMPLEX)
 
-eq = Eq(diff(psi, t), 0.5j * diff(psi, x**2) + (1j * abs(psi) - 0.5j) * psi)
+eq = Eq(diff(psi, t), 0.5j * diff(psi, x, x) + (1j * abs(psi) - 0.5j) * psi)
 
 def xdensity(psi, t):
     return abs(psi)**2

@@ -90,8 +90,8 @@ class Eq(ExprNode):
     pass
 
 
-def diff(x, y):
-    return Differential(x, y)
+def diff(expr, *variables):
+    return Differential(expr, *variables)
 
 
 def as_expr(obj):
