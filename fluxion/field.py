@@ -358,7 +358,8 @@ def join_fields(fields, new_dimension, new_dimension_grid, generic_field):
     assert new_dimension not in generic_field.dimensions
     assert isinstance(new_dimension, PropagationDimension)
 
-    new_dim = TransverseDimension(new_dimension.name, new_dimension_grid)
+    # FIXME: setting uniform=True for the time being to make plotting easier
+    new_dim = TransverseDimension(new_dimension.name, new_dimension_grid, uniform=True)
 
     # Currently we're just attaching the new dimension in front,
     # but it is possible to preserve the position it has in the original field.
