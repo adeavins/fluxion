@@ -180,9 +180,11 @@ def integrate(eq, initial_field, pdim_start, seed=None, samplers={}):
         stepper.step()
 
         pdim_val = stepper.pdim
-        print(pdim_val)
 
         to_sample = seq.pop_events_until(pdim_val)
+
+        if len(to_sample) > 0:
+            print(pdim_val)
 
         sample(results, stepper, ufield_snapshot, samplers, to_sample)
 
