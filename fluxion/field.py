@@ -271,6 +271,10 @@ def _as_array(obj: Add, dimensions):
     return _as_array(obj.args[0], dimensions) + _as_array(obj.args[1], dimensions)
 
 @multimethod
+def _as_array(obj: Sub, dimensions):
+    return _as_array(obj.args[0], dimensions) - _as_array(obj.args[1], dimensions)
+
+@multimethod
 def _as_array(obj: Mul, dimensions):
     return _as_array(obj.args[0], dimensions) * _as_array(obj.args[1], dimensions)
 
