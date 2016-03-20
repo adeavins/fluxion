@@ -17,7 +17,7 @@ k = momentum_space(x)
 def kdensity(psi, t):
     return abs(to_momentum_space(psi, x, k))**2
 
-psi0 = 1 / cosh(x)
+psi0 = 1 / cosh(10 - x)
 results = integrate(
     eq, psi0, 0,
     samplers=dict(
