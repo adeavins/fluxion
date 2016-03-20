@@ -327,7 +327,7 @@ def substitute(expr: ExprNode, to_sub):
     return type(expr)(*[substitute(arg, to_sub) for arg in expr.args])
 
 @multimethod
-def substitute(expr: (UnknownField, PropagationDimension), to_sub):
+def substitute(expr: (UnknownField, PropagationDimension, Differential), to_sub):
     return to_sub[expr]
 
 @multimethod
