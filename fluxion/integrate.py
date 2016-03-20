@@ -87,16 +87,48 @@ def sample_field(field, pdim):
 class CallableExpr:
 
     def __init__(self, expr, ufield, pdim):
+
+        vs = used_variables(expr)
+        self.differentials = vs['differentials']
+
         self.expr = expr
         self.param_symbols = [ufield, pdim]
-        self.param_dimensions = [
-            tuple(dim for dim in ufield.dimensions if dim != pdim),
-            ()]
+        self.ufield_dimensions = tuple(dim for dim in ufield.dimensions if dim != pdim)
 
     def __call__(self, param_arrays):
+
+        field_arr, pdim_value = param_arrays
+        ufield, pdim = self.param_symbols
+
         to_sub = {
-            symbol: Field('', *dims, data=arr)
-            for symbol, arr, dims in zip(self.param_symbols, param_arrays, self.param_dimensions)}
+            ufield: Field('_ufield_arr', *self.ufield_dimensions, data=field_arr),
+            pdim: Field('_pdim_val', data=pdim_value)
+        }
+
+        for diff in self.differentials:
+            field = diff.args[0]
+            variables = diff.args[1:]
+
+            # Here we assume that the target dimensions are
+            # - uniform
+            # - periodic
+            # so we can use FFT to calculate derivatives
+
+            powers = defaultdict(lambda: 0)
+            for variable in variables:
+                powers[variable] += 1
+
+            arr = field_arr
+            axes = {variable: ufield.dimensions.index(variable) for variable in powers}
+            arr = numpy.fft.fftn(arr, axes=list(axes.values()))
+            for variable, power in powers.items():
+                xs = variable.grid
+                ks = numpy.fft.fftfreq(xs.size, xs[1] - xs[0]) * 2 * numpy.pi
+                arr *= ((1j * ks)**power).reshape(ks.size, *([1] * (arr.ndim - axes[variable] - 1)))
+            arr = numpy.fft.ifftn(arr, axes=list(axes.values()))
+
+            to_sub[diff] = Field('_diff_arr', *self.ufield_dimensions, data=arr)
+
         return as_array(substitute(self.expr, to_sub))
 
 
@@ -113,7 +145,9 @@ def sample(results, stepper, ufield_snapshot, samplers, events):
 
 def integrate(eq, initial_field, pdim_start, seed=None, samplers={}):
 
-    stepper_gen = EulerStepper(step=0.01)
+    # FIXME: set to a small value to make the soliton example converge
+    # really need to implement a decent stepper
+    stepper_gen = EulerStepper(step=0.0001)
 
     # assert that the equation has a required form:
     ufield, pdimension, vs = check_equation(eq)
@@ -154,7 +188,8 @@ def integrate(eq, initial_field, pdim_start, seed=None, samplers={}):
 
     for key in results:
         generic_field = find_generic_field(results[key]['mean'], ufield.dimensions)
-        results[key] = join_fields(results[key]['mean'], pdimension, generic_field)
+        results[key] = join_fields(
+            results[key]['mean'], pdimension, results[key]['pvalue'], generic_field)
 
     print(results)
     return results
