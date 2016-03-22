@@ -347,11 +347,11 @@ def find_generic_field(fields, preferred_dim_order):
     for field in fields:
         used_dims.update(field.dimensions)
 
-    # Currently we do not allow samplers to introduce new dimensions
-    if not used_dims.issubset(preferred_dims):
-        raise NotImplementedError
+    used_dims_not_in_pd = used_dims - preferred_dims
 
-    generic_dims = [dim for dim in preferred_dim_order if dim in used_dims]
+    generic_dims = (
+        [dim for dim in preferred_dim_order if dim in used_dims]
+        + [dim for dim in used_dims_not_in_pd])
     return UnknownField('', *generic_dims, kind=kind)
 
 
