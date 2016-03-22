@@ -51,3 +51,7 @@ I'd like to make dimension/field names optional. The only use for dimension name
 Fields should have a pretty print option, where their dimensions, kind and data are displayed in a readable form. Perhaps close to how ``pandas`` does it.
 
 There should be a way to specify the "reference" data in ``plot()`` (in a form of expressions or just raw data).
+
+``find_generic_field()`` should have some way to handle new dimensions introduced by samplers, for example the mode space dimension in the soliton example. Specifically for the mode space dimensions, we can remember the "base" dimensions, and use them to determine the order. For entirely new dimensions (why would anyone actually need this?) we can just add them to the end.
+
+``to_momentum_space`` takes too much time, because it recreates the new dimension on every call. Don't know how to fix it properly at the moment. Some kind of caching maybe?
