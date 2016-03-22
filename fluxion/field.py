@@ -37,8 +37,9 @@ class TransverseDimension(Symbol):
 def momentum_space(dim, name=''):
     assert isinstance(dim, TransverseDimension)
     assert dim.uniform
-    return TransverseDimension(
-        name, numpy.fft.fftfreq(dim.grid.size, dim.grid[1] - dim.grid[0]), uniform=True)
+    new_grid = numpy.fft.fftfreq(dim.grid.size, dim.grid[1] - dim.grid[0])
+    new_grid = numpy.fft.fftshift(new_grid)
+    return TransverseDimension(name, new_grid, uniform=True)
 
 
 class TransverseIntegerDimension(Symbol):
