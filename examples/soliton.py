@@ -13,16 +13,16 @@ eq = Eq(diff(psi, t), 0.5j * diff(psi, x, x) + (1j * abs(psi) - 0.5j) * psi)
 def xdensity(psi, t):
     return abs(psi)**2
 
-#k = momentum_space(x)
-#def kdensity(psi, t):
-#    return abs(to_momentum_space(psi, x, k))**2
+k = momentum_space(x)
+def kdensity(psi, t):
+    return abs(to_momentum_space(psi, x, k))**2
 
 psi0 = 1 / cosh(10 - x)
 results = integrate(
     eq, psi0, 0,
     samplers=dict(
         xdensity=(xdensity, linspace(0, 5, 101)),
-        #kdensity=(kdensity, linspace(0, 5, 101))
+        kdensity=(kdensity, linspace(0, 5, 101))
         ))
 
 plot(results)
