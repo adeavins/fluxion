@@ -193,7 +193,6 @@ def integrate(eq, initial_field, pdim_start, seed=None, samplers={}):
         results[key] = join_fields(
             results[key]['mean'], pdimension, results[key]['pvalue'], generic_field)
 
-    print(results)
     return results
 
 
