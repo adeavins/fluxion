@@ -214,8 +214,9 @@ def plot(results):
             if dims[0].uniform and dims[1].uniform:
                 s.imshow(
                     f.data.T,
-                    extent=(dims[1].grid[0], dims[1].grid[-1], dims[0].grid[0], dims[0].grid[-1]),
+                    extent=(dims[0].grid[0], dims[0].grid[-1], dims[1].grid[0], dims[1].grid[-1]),
                     aspect='auto',
+                    origin='lower',
                     cmap=matplotlib.cm.viridis)
             else:
                 # use imshow(griddata(...))?
