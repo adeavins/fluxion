@@ -15,7 +15,8 @@ def xdensity(psi, t):
 
 k = momentum_space(x)
 def kdensity(psi, t):
-    return abs(to_momentum_space(psi, x, k))**2
+    psi_k, k = to_momentum_space(psi, x)
+    return abs(psi_k)**2
 
 psi0 = 1 / cosh(10 - x)
 results = integrate(

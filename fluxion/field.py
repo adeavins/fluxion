@@ -24,6 +24,8 @@ class TransverseDimension(Symbol):
         self.name = name
         self.grid = numpy.array(grid)
         self.uniform = uniform
+        if uniform:
+            self.grid_step = self.grid[1] - self.grid[0]
 
     @classmethod
     def uniform(cls, name, start, stop, points, endpoint=False):
@@ -40,6 +42,30 @@ def momentum_space(dim, name=''):
     new_grid = numpy.fft.fftfreq(dim.grid.size, dim.grid[1] - dim.grid[0])
     new_grid = numpy.fft.fftshift(new_grid)
     return TransverseDimension(name, new_grid, uniform=True)
+
+
+def to_momentum_space(field, *dimensions):
+    if len(dimensions) == 0:
+        dimensions = field.dimensions
+
+    kdims = {dim: momentum_space(dim) for dim in dimensions}
+
+    axes = [field.dimensions.index(dim) for dim in dimensions]
+
+    dV = 1
+    size = 1
+    for dim in dimensions:
+        dV *= dim.grid_step
+        size *= dim.grid.size
+
+    fft_scale = (dV / size)**0.5
+    new_data = numpy.fft.fftn(field.data, axes=axes) * fft_scale
+    new_data = numpy.fft.fftshift(new_data, axes=axes)
+    new_dimensions = [kdims.get(dim, dim) for dim in field.dimensions]
+
+    kdims_list = [kdims[dim] for dim in dimensions]
+
+    return [Field('_momentum_space', *new_dimensions, data=new_data)] + kdims_list
 
 
 class TransverseIntegerDimension(Symbol):
