@@ -79,6 +79,59 @@ class _EulerStepper:
                 * (self.field - self.field_prev))
 
 
+class RK4Stepper:
+
+    def __init__(self, step=0.1):
+        self.step = step
+
+    def initialize(self, pdim_start, initial_field, func):
+        return _RK4Stepper(pdim_start, initial_field, func, self)
+
+
+class _RK4Stepper:
+
+    def __init__(self, pdim_start, initial_field, func, params):
+        self.pdim_prev = pdim_start
+        self.pdim = pdim_start
+
+        self.field_prev = initial_field
+        self.field = initial_field
+
+        self.func = func
+        self.params = params
+
+    def step(self):
+
+        step = self.params.step
+        pdim = self.pdim
+        f = lambda f, p: self.func((f, p))
+
+        k1 = step * f(self.field, pdim)
+        k2 = step * f(self.field + k1 / 2, pdim + step / 2)
+        k3 = step * f(self.field + k2 / 2, pdim + step / 2)
+        k4 = step * f(self.field + k3, pdim + step)
+
+        new_field = self.field + k1 / 6 + k2 / 3 + k3 / 3 + k4 / 6
+
+        self.pdim += self.params.step
+        self.field_prev = self.field
+        self.field = new_field
+
+    def interpolate_at(self, pdim):
+        assert self.pdim_prev <= pdim <= self.pdim
+        if self.pdim_prev == self.pdim:
+            return self.field
+
+        h = self.pdim - self.pdim_prev
+        t = (pdim - self.pdim_prev) / h
+        f = self.field
+        fp = self.field_prev
+
+        # Third-order approximation
+        return (
+            (1 - t) * fp + t * f
+            + t * (t - 1) * ((1 - 2 * t) * (f - fp) + (t - 1) * h * fp + t * h * f))
+
 
 def sample_field(field, pdim):
     return field
@@ -145,9 +198,7 @@ def sample(results, stepper, ufield_snapshot, samplers, events):
 
 def integrate(eq, initial_field, pdim_start, seed=None, samplers={}):
 
-    # FIXME: set to a small value to make the soliton example converge
-    # really need to implement a decent stepper
-    stepper_gen = EulerStepper(step=0.0001)
+    stepper_gen = RK4Stepper(step=0.02)
 
     # assert that the equation has a required form:
     ufield, pdimension, vs = check_equation(eq)
