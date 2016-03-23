@@ -7,7 +7,6 @@ Milestones
 
 This is the approximate sequence of adding features towards the first beta:
 
-* ODE with transverse derivatives
 * ODE with integer dimensions
 * ODE with several fields
 * 0-dimensional SDE
