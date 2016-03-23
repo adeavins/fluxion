@@ -1,3 +1,5 @@
+import numpy
+
 from .assumptions import validate_assumptions
 
 """
@@ -22,11 +24,23 @@ class Expr:
     def __radd__(self, other):
         return Add(as_expr(other), self)
 
+    def __sub__(self, other):
+        return Sub(self, as_expr(other))
+
+    def __rsub__(self, other):
+        return Sub(as_expr(other), self)
+
     def __mul__(self, other):
         return Mul(self, as_expr(other))
 
     def __rmul__(self, other):
         return Mul(as_expr(other), self)
+
+    def __truediv__(self, other):
+        return Div(self, as_expr(other))
+
+    def __rtruediv__(self, other):
+        return Div(as_expr(other), self)
 
     def __pow__(self, other):
         return Pow(self, as_expr(other))
@@ -52,7 +66,15 @@ class Add(ExprNode):
     pass
 
 
+class Sub(ExprNode):
+    pass
+
+
 class Mul(ExprNode):
+    pass
+
+
+class Div(ExprNode):
     pass
 
 
@@ -68,8 +90,8 @@ class Eq(ExprNode):
     pass
 
 
-def diff(x, y):
-    return Differential(x, y)
+def diff(expr, *variables):
+    return Differential(expr, *variables)
 
 
 def as_expr(obj):
@@ -160,10 +182,42 @@ class Function(ExprLeaf):
     def propagate_assumptions(self, *args):
         pass
 
+    def evaluate(self, *args):
+        raise NotImplementedError
+
     def __call__(self, *args):
         assert len(args) == self.__nargs
         # and, probably, other checks
         return Apply(self, *args)
+
+
+class Apply(ExprNode):
+    pass
+
+
+class Abs(Function):
+    def __init__(self):
+        super().__init__('abs', 1)
+
+    def evaluate(self, x):
+        return numpy.abs(x)
+
+
+def abs(x):
+    return Apply(Abs(), x)
+
+
+class Cosh(Function):
+
+    def __init__(self):
+        super().__init__('abs', 1)
+
+    def evaluate(self, x):
+        return numpy.cosh(x)
+
+
+def cosh(x):
+    return Apply(Cosh(), x)
 
 
 class Scalar(TypedExprLeaf):
@@ -180,6 +234,24 @@ class Integer(Scalar):
 
     def __init__(self, value):
         super(Integer, self).__init__(value, integer=True)
+
+    def _canonical_args(self):
+        return (self.value,), None
+
+
+class Real(Scalar):
+
+    def __init__(self, value):
+        super(Real, self).__init__(value, real=True)
+
+    def _canonical_args(self):
+        return (self.value,), None
+
+
+class Complex(Scalar):
+
+    def __init__(self, value):
+        super(Complex, self).__init__(value, complex=True)
 
     def _canonical_args(self):
         return (self.value,), None

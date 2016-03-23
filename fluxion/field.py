@@ -18,17 +18,54 @@ class PropagationDimension(Symbol):
 
 class TransverseDimension(Symbol):
 
-    def __init__(self, name, grid):
+    def __init__(self, name, grid, uniform=False):
         super(TransverseDimension, self).__init__(name, real=True)
+        # TODO: we need to actually check for uniformity instead of relying on the user
         self.name = name
         self.grid = numpy.array(grid)
+        self.uniform = uniform
+        if uniform:
+            self.grid_step = self.grid[1] - self.grid[0]
 
     @classmethod
-    def uniform(cls, name):
-        return TransverseDimension(name, numpy.linspace(start, stop, points, endpoint=False))
+    def uniform(cls, name, start, stop, points, endpoint=False):
+        return TransverseDimension(
+            name, numpy.linspace(start, stop, points, endpoint=endpoint), uniform=True)
 
     def _canonical_args(self):
-        return (self.name, self.grid), None
+        return (self.name,), None
+
+
+def momentum_space(dim, name=''):
+    assert isinstance(dim, TransverseDimension)
+    assert dim.uniform
+    new_grid = numpy.fft.fftfreq(dim.grid.size, dim.grid[1] - dim.grid[0])
+    new_grid = numpy.fft.fftshift(new_grid)
+    return TransverseDimension(name, new_grid, uniform=True)
+
+
+def to_momentum_space(field, *dimensions):
+    if len(dimensions) == 0:
+        dimensions = field.dimensions
+
+    kdims = {dim: momentum_space(dim) for dim in dimensions}
+
+    axes = [field.dimensions.index(dim) for dim in dimensions]
+
+    dV = 1
+    size = 1
+    for dim in dimensions:
+        dV *= dim.grid_step
+        size *= dim.grid.size
+
+    fft_scale = (dV / size)**0.5
+    new_data = numpy.fft.fftn(field.data, axes=axes) * fft_scale
+    new_data = numpy.fft.fftshift(new_data, axes=axes)
+    new_dimensions = [kdims.get(dim, dim) for dim in field.dimensions]
+
+    kdims_list = [kdims[dim] for dim in dimensions]
+
+    return [Field('_momentum_space', *new_dimensions, data=new_data)] + kdims_list
 
 
 class TransverseIntegerDimension(Symbol):
@@ -172,27 +209,48 @@ def join(dicts):
 
 
 @multimethod
-def used_variables(expr: ExprNode):
-    return join([used_variables(arg) for arg in expr.args])
+def _used_variables(expr: (list, tuple)):
+    return join([_used_variables(elem) for elem in expr])
 
 @multimethod
-def used_variables(expr: ExprLeaf):
+def _used_variables(expr: ExprNode):
+    return _used_variables(expr.args)
+
+@multimethod
+def _used_variables(expr: Field):
+    return _used_variables(expr.dimensions)
+
+@multimethod
+def _used_variables(expr: Differential):
+    return join([
+        dict(differentials=set([expr])),
+        _used_variables(expr.args)])
+
+@multimethod
+def _used_variables(expr: ExprLeaf):
     return {}
 
 @multimethod
-def used_variables(expr: TransverseDimension):
+def _used_variables(expr: TransverseDimension):
     return dict(transverse_dimensions=set([expr]))
 
 @multimethod
-def used_variables(expr: PropagationDimension):
+def _used_variables(expr: PropagationDimension):
     return dict(propagation_dimensions=set([expr]))
 
 @multimethod
-def used_variables(expr: Noise):
+def _used_variables(expr: Noise):
     return join(
         [dict(noises=set([expr]))]
-        + [used_variables(dim) for dim in expr.dimensions])
+        + [_used_variables(dim) for dim in expr.dimensions])
 
+
+def used_variables(expr):
+    return join([
+        _used_variables(expr),
+        dict(
+            noises=set(), propagation_dimensions=set(),
+            transverse_dimensions=set(), differentials=set())])
 
 
 def as_array(obj, dimensions=None, kind=None):
@@ -240,12 +298,26 @@ def _as_array(obj: Add, dimensions):
     return _as_array(obj.args[0], dimensions) + _as_array(obj.args[1], dimensions)
 
 @multimethod
+def _as_array(obj: Sub, dimensions):
+    return _as_array(obj.args[0], dimensions) - _as_array(obj.args[1], dimensions)
+
+@multimethod
 def _as_array(obj: Mul, dimensions):
     return _as_array(obj.args[0], dimensions) * _as_array(obj.args[1], dimensions)
 
 @multimethod
+def _as_array(obj: Div, dimensions):
+    return _as_array(obj.args[0], dimensions) / _as_array(obj.args[1], dimensions)
+
+@multimethod
 def _as_array(obj: Pow, dimensions):
     return _as_array(obj.args[0], dimensions) ** _as_array(obj.args[1], dimensions)
+
+@multimethod
+def _as_array(obj: Apply, dimensions):
+    func = obj.args[0]
+    assert isinstance(func, Function)
+    return func.evaluate(*[_as_array(arg, dimensions) for arg in obj.args[1:]])
 
 @multimethod
 def _as_array(obj: Field, dimensions):
@@ -282,7 +354,7 @@ def substitute(expr: ExprNode, to_sub):
     return type(expr)(*[substitute(arg, to_sub) for arg in expr.args])
 
 @multimethod
-def substitute(expr: (UnknownField, PropagationDimension), to_sub):
+def substitute(expr: (UnknownField, PropagationDimension, Differential), to_sub):
     return to_sub[expr]
 
 @multimethod
@@ -301,11 +373,11 @@ def find_generic_field(fields, preferred_dim_order):
     for field in fields:
         used_dims.update(field.dimensions)
 
-    # Currently we do not allow samplers to introduce new dimensions
-    if not used_dims.issubset(preferred_dims):
-        raise NotImplementedError
+    used_dims_not_in_pd = used_dims - preferred_dims
 
-    generic_dims = [dim for dim in preferred_dim_order if dim in used_dims]
+    generic_dims = (
+        [dim for dim in preferred_dim_order if dim in used_dims]
+        + [dim for dim in used_dims_not_in_pd])
     return UnknownField('', *generic_dims, kind=kind)
 
 
@@ -313,7 +385,8 @@ def join_fields(fields, new_dimension, new_dimension_grid, generic_field):
     assert new_dimension not in generic_field.dimensions
     assert isinstance(new_dimension, PropagationDimension)
 
-    new_dim = TransverseDimension(new_dimension.name, new_dimension_grid)
+    # FIXME: setting uniform=True for the time being to make plotting easier
+    new_dim = TransverseDimension(new_dimension.name, new_dimension_grid, uniform=True)
 
     # Currently we're just attaching the new dimension in front,
     # but it is possible to preserve the position it has in the original field.
