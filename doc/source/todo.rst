@@ -55,3 +55,5 @@ There should be a way to specify the "reference" data in ``plot()`` (in a form o
 ``find_generic_field()`` should have some way to handle new dimensions introduced by samplers, for example the mode space dimension in the soliton example. Specifically for the mode space dimensions, we can remember the "base" dimensions, and use them to determine the order. For entirely new dimensions (why would anyone actually need this?) we can just add them to the end.
 
 ``to_momentum_space`` takes too much time, because it recreates the new dimension on every call. Don't know how to fix it properly at the moment. Some kind of caching maybe?
+
+Check if the dense output in the RK4 actually produces an oscillating behavior in the soliton example, or it is just an optical illustion. Need to implement some convergence tests as well.
