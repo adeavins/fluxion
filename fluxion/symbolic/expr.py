@@ -102,7 +102,7 @@ def as_expr(obj):
         return Integer(obj)
 
     if isinstance(obj, float):
-        return Float(obj)
+        return Real(obj)
 
     if isinstance(obj, complex):
         return Complex(obj)
