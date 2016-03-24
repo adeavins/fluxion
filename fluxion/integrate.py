@@ -180,6 +180,7 @@ class CallableExpr:
                 powers[variable] += 1
 
             arr = field_arr
+            dtype = field_arr.dtype
             axes = {variable: ufield.dimensions.index(variable) for variable in powers}
             arr = numpy.fft.fftn(arr, axes=list(axes.values()))
             for variable, power in powers.items():
@@ -187,6 +188,7 @@ class CallableExpr:
                 ks = numpy.fft.fftfreq(xs.size, xs[1] - xs[0]) * 2 * numpy.pi
                 arr *= ((1j * ks)**power).reshape(ks.size, *([1] * (arr.ndim - axes[variable] - 1)))
             arr = numpy.fft.ifftn(arr, axes=list(axes.values()))
+            arr = arr.astype(dtype) # resetting back to real numbers if necessary
 
             to_sub[diff] = Field('_diff_arr', *self.ufield_dimensions, data=arr)
 
