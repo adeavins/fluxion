@@ -186,7 +186,7 @@ class CallableExpr:
             for variable, power in powers.items():
                 xs = variable.grid
                 ks = numpy.fft.fftfreq(xs.size, xs[1] - xs[0]) * 2 * numpy.pi
-                arr *= ((1j * ks)**power).reshape(ks.size, *([1] * (arr.ndim - axes[variable] - 1)))
+                arr *= ((-1j * ks)**power).reshape(ks.size, *([1] * (arr.ndim - axes[variable] - 1)))
             arr = numpy.fft.ifftn(arr, axes=list(axes.values()))
             arr = arr.astype(dtype) # resetting back to real numbers if necessary
 
