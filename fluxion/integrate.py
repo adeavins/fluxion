@@ -96,6 +96,8 @@ class _RK4Stepper:
 
         self.field_prev = initial_field
         self.field = initial_field
+        self.step_times_deriv_prev = None
+        self.step_times_deriv = None
 
         self.func = func
         self.params = params
@@ -106,12 +108,16 @@ class _RK4Stepper:
         pdim = self.pdim
         f = lambda f, p: self.func((f, p))
 
-        k1 = step * f(self.field, pdim)
+        self.step_times_deriv_prev = step * f(self.field, pdim)
+
+        k1 = self.step_times_deriv_prev
         k2 = step * f(self.field + k1 / 2, pdim + step / 2)
         k3 = step * f(self.field + k2 / 2, pdim + step / 2)
         k4 = step * f(self.field + k3, pdim + step)
 
-        new_field = self.field + k1 / 6 + k2 / 3 + k3 / 3 + k4 / 6
+        self.step_times_deriv = k1 / 6 + k2 / 3 + k3 / 3 + k4 / 6
+
+        new_field = self.field + self.step_times_deriv
 
         self.pdim += self.params.step
         self.field_prev = self.field
@@ -124,13 +130,15 @@ class _RK4Stepper:
 
         h = self.pdim - self.pdim_prev
         t = (pdim - self.pdim_prev) / h
-        f = self.field
-        fp = self.field_prev
+        y = self.field
+        yp = self.field_prev
+        f = self.step_times_deriv
+        fp = self.step_times_deriv_prev
 
         # Third-order approximation
         return (
-            (1 - t) * fp + t * f
-            + t * (t - 1) * ((1 - 2 * t) * (f - fp) + (t - 1) * h * fp + t * h * f))
+            (1 - t) * yp + t * y
+            + t * (t - 1) * ((1 - 2 * t) * (y - yp) + (t - 1) * fp + t * f))
 
 
 def sample_field(field, pdim):
