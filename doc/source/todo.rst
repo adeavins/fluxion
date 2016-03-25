@@ -56,3 +56,5 @@ There should be a way to specify the "reference" data in ``plot()`` (in a form o
 For debug purposes it would be useful to save step sizes in the results. Perhaps, with an optional ``debug`` key on.
 
 Provide per-observable plotting functions that will allow for more customization. ``plot()`` will just call them with default parameters for each of the observables.
+
+Unknown fields may not need explicit kind specification --- can we derive it from the equation? There will be a problem with ``sqrt()``, which can produce complex numbers out of real ones. In order to handle that we will need to also know whether the expression is nonnegative or not.
