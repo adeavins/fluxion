@@ -52,3 +52,7 @@ There should be a way to specify the "reference" data in ``plot()`` (in a form o
 ``find_generic_field()`` should have some way to handle new dimensions introduced by samplers, for example the mode space dimension in the soliton example. Specifically for the mode space dimensions, we can remember the "base" dimensions, and use them to determine the order. For entirely new dimensions (why would anyone actually need this?) we can just add them to the end.
 
 ``to_momentum_space`` takes too much time, because it recreates the new dimension on every call. Don't know how to fix it properly at the moment. Some kind of caching maybe?
+
+For debug purposes it would be useful to save step sizes in the results. Perhaps, with an optional ``debug`` key on.
+
+Provide per-observable plotting functions that will allow for more customization. ``plot()`` will just call them with default parameters for each of the observables.
