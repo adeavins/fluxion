@@ -57,4 +57,4 @@ For debug purposes it would be useful to save step sizes in the results. Perhaps
 
 Provide per-observable plotting functions that will allow for more customization. ``plot()`` will just call them with default parameters for each of the observables.
 
-Unknown fields may not need explicit kind specification --- can we derive it from the equation? There will be a problem with ``sqrt()``, which can produce complex numbers out of real ones. In order to handle that we will need to also know whether the expression is nonnegative or not.
+Unknown fields may not need explicit kind specification --- can we derive it from the equation? There will be a problem with ``sqrt()``, which can produce complex numbers out of real ones. In order to handle that we will need to also know whether the expression is nonnegative or not. Perhaps we will have to interface with ``sympy`` in the end.
